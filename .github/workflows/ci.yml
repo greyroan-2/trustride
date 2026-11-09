@@ -1,0 +1,57 @@
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: trustride_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d trustride_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI_TEST_DATABASE: "true"
+      DATABASE_URL: postgresql://postgres:ci-only-password@127.0.0.1:5432/trustride_test
+      DIRECT_URL: postgresql://postgres:ci-only-password@127.0.0.1:5432/trustride_test
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-secret
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run security:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: node scripts/ci-database.cjs bootstrap
+      - run: npm run db:migrate
+      - run: node scripts/ci-database.cjs verify
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run build
+      - name: Production smoke test
+        run: |
+          npm start > /tmp/trustride.log 2>&1 &
+          trap 'kill $! 2>/dev/null || true' EXIT
+          node scripts/smoke-test.cjs

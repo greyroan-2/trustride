@@ -1,0 +1,35 @@
+const assert = require("node:assert/strict");
+(async()=>{
+ const base=process.env.SMOKE_URL || "http://localhost:3000";
+ let ready=false;
+ for(let attempt=0;attempt<60;attempt++){try{const r=await fetch(`${base}/api/health`);if(r.ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,1000));}
+ assert.ok(ready,"Server must become healthy");
+ const response=await fetch(base); assert.equal(response.status,200);
+ const csp=response.headers.get("content-security-policy") || "";
+ assert.match(csp, /nonce-/); assert.match(csp,/object-src 'none'/); assert.ok(!csp.includes("'unsafe-eval'"));
+ const nonce=csp.match(/nonce-([^']+)/)?.[1];
+ assert.ok(nonce && (await response.text()).includes(`nonce="${nonce}"`),"Framework scripts must use the response CSP nonce");
+ assert.equal(response.headers.get("x-content-type-options"),"nosniff");
+ assert.equal(response.headers.get("x-powered-by"),null);
+ const attack=await fetch(`${base}/api/quote`,{method:"POST",headers:{Origin:"https://attacker.invalid","Content-Type":"application/json"},body:"{}"});
+ assert.equal(attack.status,403);
+ const privatePage=await fetch(`${base}/admin/testimonials`,{redirect:"manual"});
+ const privateHtml=await privatePage.text();
+ const redirectHeader=[303,307].includes(privatePage.status) && privatePage.headers.get("location")?.includes("/login");
+ const streamedRedirect=privatePage.status===200 && /<meta[^>]+id="__next-page-redirect"[^>]+url=\/login/.test(privateHtml);
+ assert.ok(redirectHeader || streamedRedirect,"Guests must be redirected away from admin");
+ assert.ok(!privateHtml.includes("Customer stories"),"Admin data must not be streamed to guests");
+ const testimonials=await fetch(`${base}/testimonials`);
+ assert.equal(testimonials.status,200);
+ const publicStories=await testimonials.text();
+ assert.ok(publicStories.includes("Good journeys. Real stories."));
+ assert.ok(!publicStories.includes('class="testimonial-view-tabs"') && !publicStories.includes('name="bookingId"'),"Guests must not receive the client submission workspace");
+ const recovery=await fetch(`${base}/forgot-password`);
+ assert.equal(recovery.status,200);const recoveryHtml=await recovery.text();
+ assert.ok(recoveryHtml.includes("Forgot your password?"));assert.ok(recoveryHtml.includes("Send reset link"));
+ const reset=await fetch(`${base}/reset-password`);
+ assert.equal(reset.status,200);assert.ok((await reset.text()).includes("Request a fresh link"));
+ const image=await fetch(`${base}/images/veloz.webp`,{method:"HEAD"});
+ assert.match(image.headers.get("cache-control") || "",/max-age=86400/);
+ console.log("Production health, CSP, headers, and cross-origin rejection passed.");
+})().catch(error=>{console.error(error.message);process.exitCode=1;});

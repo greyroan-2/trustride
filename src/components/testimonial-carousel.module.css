@@ -1,0 +1,22 @@
+.section { overflow:hidden; background:var(--paper, #f6f7f9); color:#101d35; padding:64px 0; text-align:center; }
+.heading { padding:0 24px; }
+.heading p { font-size:11px; letter-spacing:.16em; font-weight:700; }
+.heading h2 { font-size:clamp(28px,4vw,40px); margin:18px 0 12px; }
+.heading > span { font-size:15px; color:#525e70; }
+.stage { position:relative; height:420px; margin:38px auto 12px; max-width:1440px; }
+.card { position:absolute; left:50%; top:0; width:min(480px,76vw); height:100%; padding:32px; border:1px solid #d9dfe7; border-radius:20px; background:white; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; transform:translateX(-50%); transition:transform 500ms ease,opacity 500ms ease; }
+.card blockquote { font-size:clamp(18px,2vw,24px); line-height:1.6; margin:0; overflow:auto; max-height:200px; width:100%; overflow-wrap:anywhere; }
+.card > span { font-size:12px; color:#526078; }
+.card[data-position="0"] { background:#101d35; color:white; z-index:3; }
+.card[data-position="0"] > span { color:#dbe4ef; }
+.card[data-position="0"] :global(.testimonial-rating-display) { color:#f0cc84; }
+.card[data-position="-1"] { transform:translateX(calc(-150% - 24px)) scale(.86); opacity:.7; z-index:2; }
+.card[data-position="1"] { transform:translateX(calc(50% + 24px)) scale(.86); opacity:.7; z-index:2; }
+.card[data-position="-2"] { transform:translateX(calc(-250% - 48px)) scale(.74); opacity:.4; }
+.card[data-position="2"] { transform:translateX(calc(150% + 48px)) scale(.74); opacity:.4; }
+.card[data-position="hidden"] { opacity:0; pointer-events:none; transform:translateX(-50%) scale(.6); }
+.controls { display:flex; align-items:center; justify-content:center; gap:24px; font-size:13px; }
+.section .controls button { display:grid; place-items:center; border-radius:50%; width:44px; height:44px; padding:0; background:white; color:#101d35; border:1px solid #cdd4df; }
+.explore { display:inline-flex; align-items:center; gap:12px; margin-top:28px; padding:14px 22px; border-radius:999px; background:#101d35; color:white; font-size:14px; }
+.empty { margin:40px auto 0; padding:32px 24px; max-width:560px; line-height:1.7; }
+@media(prefers-reduced-motion:reduce) { .card { transition:none; } }

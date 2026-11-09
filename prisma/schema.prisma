@@ -1,0 +1,140 @@
+generator client {
+ provider = "prisma-client-js"
+}
+datasource db {
+ provider = "postgresql"
+}
+enum Role {
+ CLIENT
+ ADMIN
+}
+enum BookingStatus {
+ PENDING
+ CONFIRMED
+ DELIVERED
+ CANCELLED
+ COMPLETED
+ REJECTED
+}
+model UserProfile {
+ avatarPath String?
+ id String @id @db.Uuid
+ email String @unique
+ name String @default("")
+ phone String @default("")
+ role Role @default(CLIENT)
+ createdAt DateTime @default(now())
+ bookings Booking[]
+ testimonials Testimonial[]
+ auditLogs AdminAuditLog[]
+}
+model VehicleModel {
+ id String @id @default(uuid()) @db.Uuid
+ slug String @unique
+ name String
+ year Int?
+ category String @default("MPV")
+ seats Int?
+ transmission String?
+ luggage String?
+ features String[]
+ description String
+ vehicles Vehicle[]
+}
+model Vehicle {
+ id String @id @default(uuid()) @db.Uuid
+ modelId String @db.Uuid
+ model VehicleModel @relation(fields:[modelId],references:[id])
+ unitCode String @unique
+ status String @default("ACTIVE")
+ archived Boolean @default(false)
+ media VehicleMedia[]
+ pricing PricingRule?
+ bookings Booking[]
+ blocks AvailabilityBlock[]
+}
+model VehicleMedia {
+ id String @id @default(uuid()) @db.Uuid
+ vehicleId String @db.Uuid
+ vehicle Vehicle @relation(fields:[vehicleId],references:[id])
+ url String
+ type String
+ alt String
+}
+model PricingRule {
+ id String @id @default(uuid()) @db.Uuid
+ vehicleId String @unique @db.Uuid
+ vehicle Vehicle @relation(fields:[vehicleId],references:[id])
+ dailyMinor Int
+ feeMinor Int @default(0)
+ depositMinor Int @default(0)
+ distancePricing Json @default("{}")
+ currency String @default("PHP")
+ updatedAt DateTime @updatedAt
+}
+model Booking {
+ id String @id @default(uuid()) @db.Uuid
+ reference String @unique
+ customerId String @db.Uuid
+ customer UserProfile @relation(fields:[customerId],references:[id])
+ vehicleId String @db.Uuid
+ vehicle Vehicle @relation(fields:[vehicleId],references:[id])
+ startDate DateTime @db.Date
+ endDate DateTime @db.Date
+ deliveredAt DateTime? @db.Timestamptz(3)
+ status BookingStatus @default(PENDING)
+ dailyMinor Int
+ feeMinor Int
+ depositMinor Int
+ totalMinor Int
+ currency String
+ notes String @default("")
+ cancellationRequested Boolean @default(false)
+ createdAt DateTime @default(now())
+ payments PaymentRecord[]
+ workflow BookingWorkflow?
+ @@index([customerId,createdAt])
+ @@index([vehicleId,startDate,endDate])
+}
+model BookingWorkflow {
+ bookingId String @id @db.Uuid
+ booking Booking @relation(fields:[bookingId],references:[id],onDelete:Cascade)
+ data Json @default("{}")
+ updatedAt DateTime @updatedAt
+}
+model AvailabilityBlock {
+ id String @id @default(uuid()) @db.Uuid
+ vehicleId String @db.Uuid
+ vehicle Vehicle @relation(fields:[vehicleId],references:[id])
+ startDate DateTime @db.Date
+ endDate DateTime @db.Date
+ reason String
+ @@index([vehicleId,startDate,endDate])
+}
+model PaymentRecord {
+ id String @id @default(uuid()) @db.Uuid
+ bookingId String @db.Uuid
+ booking Booking @relation(fields:[bookingId],references:[id])
+ amountMinor Int
+ currency String
+ status String
+ createdAt DateTime @default(now())
+}
+model Testimonial {
+ rating Int? @db.SmallInt
+ id String @id @default(uuid()) @db.Uuid
+ customerId String? @db.Uuid
+ customer UserProfile? @relation(fields:[customerId],references:[id])
+ author String
+ content String
+ published Boolean @default(false)
+ sample Boolean @default(false)
+}
+model AdminAuditLog {
+ id String @id @default(uuid()) @db.Uuid
+ actorId String @db.Uuid
+ actor UserProfile @relation(fields:[actorId],references:[id])
+ action String
+ targetId String
+ createdAt DateTime @default(now())
+}

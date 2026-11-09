@@ -1,0 +1,5 @@
+const ts=require("typescript"),fs=require("node:fs"),path=require("node:path");
+const failures=[];
+function inspect(directory){for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const file=path.join(directory,entry.name);if(entry.isDirectory()){inspect(file);continue;}if(!/\.tsx?$/.test(file))continue;const source=ts.createSourceFile(file,fs.readFileSync(file,"utf8"),ts.ScriptTarget.Latest,true);function visit(node){if(ts.isPropertyAccessExpression(node)&&["$queryRawUnsafe","$executeRawUnsafe"].includes(node.name.text))failures.push(`${file}: unsafe raw SQL is prohibited`);if(ts.isElementAccessExpression(node)&&ts.isStringLiteral(node.argumentExpression)&&["$queryRawUnsafe","$executeRawUnsafe"].includes(node.argumentExpression.text))failures.push(`${file}: unsafe raw SQL is prohibited`);if(ts.isJsxAttribute(node)&&node.name.getText(source)==="dangerouslySetInnerHTML")failures.push(`${file}: unreviewed HTML injection sink`);ts.forEachChild(node,visit);}visit(source);}}
+inspect("src");
+if(failures.length){console.error(failures.join("\n"));process.exitCode=1;}else console.log("No unsafe raw SQL calls or unreviewed HTML injection sinks found.");

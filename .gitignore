@@ -1,0 +1,30 @@
+# Dependencies and generated output
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local credentials (only the placeholder template is committed)
+.env*
+!.env.example
+*.pem
+*.key
+
+# Logs and temporary files
+*.log
+.tmp/
+.verify-*/
+/New folder/
+
+# Local editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Deployment metadata
+.vercel/

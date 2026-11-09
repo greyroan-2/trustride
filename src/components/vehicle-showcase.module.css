@@ -1,0 +1,40 @@
+.showcase { margin:30px 0 60px; border:0; border-radius:24px; overflow:hidden; color:#101d35; background:#fff; }
+.stage { position:relative; isolation:isolate; overflow:hidden; border-radius:24px; height:clamp(300px,40vw,500px); background:linear-gradient(#f5f7fa,#eaf0f5); }
+.stage { touch-action:pan-y pinch-zoom; }
+.stage img { user-select:none; -webkit-user-drag:none; }
+.swipeHint { display:none; }
+@media(pointer:coarse) { .swipeHint { display:block; position:absolute; bottom:72px; left:0; width:100%; text-align:center; font-size:11px; color:#526078; pointer-events:none; } }
+.backdrop { position:absolute; top:5%; left:50%; transform:translateX(-50%); width:max-content; min-width:100%; text-align:center; font-size:clamp(100px,20vw,280px); line-height:1; text-transform:uppercase; font-weight:400; color:#bdcbd9; letter-spacing:.025em; white-space:nowrap; animation:name-rise 1100ms cubic-bezier(.45,0,.2,1) both; }
+.car { position:absolute; width:90%; height:90%; left:5%; bottom:9%; object-fit:contain; z-index:2; will-change:transform; animation:drive-in 1100ms cubic-bezier(.45,0,.2,1) both; }
+.car[data-direction="previous"] { animation-name:drive-back; }
+.sideCar { position:absolute; width:55%; height:64%; bottom:16%; object-fit:contain; opacity:.5; filter:blur(1px); mix-blend-mode:multiply; z-index:1; }
+.sideCar[data-side="left"] { left:-46%; }
+.sideCar[data-side="right"] { right:-46%; }
+.stage[data-transitioning="true"] .sideCar { visibility:hidden; }
+.car.departing { animation:drive-out 1100ms cubic-bezier(.45,0,.2,1) both; }
+.car.departing[data-direction="previous"] { animation-name:drive-out-back; }
+.road { position:absolute; bottom:22%; left:12%; width:76%; height:2px; background:#c2cdda; }
+.navigation { position:absolute; bottom:18px; left:0; width:100%; display:flex; gap:24px; justify-content:center; align-items:center; font-size:12px; }
+.showcase .navigation button { width:42px; height:42px; display:grid; place-items:center; padding:0; border-radius:50%; background:white; color:#101d35; border:1px solid #ccd5e2; }
+.details { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:32px; padding:28px 40px; max-width:1000px; margin:0 auto; }
+.details > div:first-child { min-width:0; }
+.category { font-size:12px; letter-spacing:.12em; text-transform:uppercase; margin:0 0 8px; }
+.details h2 { font-size:32px; line-height:1.2; margin:0; color:#101d35; }
+.specs { display:flex; flex-wrap:wrap; gap:18px; font-size:14px; }
+.specs:not(:empty) { margin-top:14px; }
+.specs span { display:flex; align-items:center; gap:8px; }
+.features { font-size:13px; max-width:550px; line-height:1.6; }
+.action { text-align:left; padding-left:32px; border-left:1px solid #e2e8f0; }
+.action p { display:flex; align-items:baseline; flex-wrap:wrap; gap:6px; margin:0 0 14px; color:#101d35; line-height:1.3; }
+.action strong { font-size:28px; font-weight:700; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.action p > span { font-size:13px; color:#526078; }
+.request { display:flex; justify-content:space-between; gap:28px; align-items:center; background:#101d35; color:white; border-radius:999px; padding:15px 24px; font-size:15px; font-weight:600; transition:background-color 180ms ease; }
+.request:hover { background:#243c60; }
+.action small { display:block; font-size:12px; margin-top:12px; color:#526078; }
+@keyframes drive-in { from { transform:translateX(-130%); } to { transform:translateX(0); } }
+@keyframes drive-back { from { transform:translateX(130%); } to { transform:translateX(0); } }
+@keyframes drive-out { from { transform:translateX(0); } to { transform:translateX(130%); } }
+@keyframes drive-out-back { from { transform:translateX(0); } to { transform:translateX(-130%); } }
+@keyframes name-rise { from { transform:translate(-50%,65%); opacity:0; } to { transform:translate(-50%,0); opacity:1; } }
+@media(max-width:700px) { .details { grid-template-columns:1fr; gap:24px; padding:24px; } .action { text-align:left; padding:24px 0 0; border-left:0; border-top:1px solid #e2e8f0; } .details h2 { font-size:30px; } .request { width:100%; justify-content:space-between; } .car { width:96%; left:2%; } }
+@media(prefers-reduced-motion:reduce) { .car, .backdrop { animation:none; } .departing { display:none; } }

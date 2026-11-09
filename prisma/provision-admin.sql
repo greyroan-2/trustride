@@ -1,0 +1,3 @@
+-- Operator only. Replace UUID after the user confirms their Supabase account and logs in once.
+-- Never expose this statement or a role update through public signup or application forms.
+-- UPDATE "UserProfile" SET role = 'ADMIN' WHERE id = '<verified-auth-user-uuid>'::uuid;
